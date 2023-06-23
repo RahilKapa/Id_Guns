@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            background-color: lightblue;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        form {
+            margin: auto;
+            width: 50%;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Upload Image</h2>
+    <form action="/results" method="post" enctype="multipart/form-data">
+        <label for="file">Select image:</label>
+        <input type="file" id="file" name="file" accept="image/*"><br>
+        <input type="submit" value="Predict">
+    </form>
+</body>
+</html>
