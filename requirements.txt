@@ -1,11 +1,7 @@
-flask==2.0.1
+fastapi==0.65.2
+uvicorn==0.15.0
+fastapi.middleware.cors==0.2.0
 werkzeug==2.0.1
-timm==0.4.12
-transformers==4.15.0
-fairscale==0.4.4
-pycocoevalcap
-torch
-torchvision
-Pillow
-scipy
-git+https://github.com/openai/CLIP.git
+regex==2021.4.4
+torch==1.9.0
+pyngrok==5.0.5

@@ -1,48 +1,67 @@
 import os
 import subprocess
-from flask import Flask, render_template, request, flash, redirect
+from fastapi import FastAPI, UploadFile, File
+from fastapi.middleware.cors import CORSMiddleware
 from werkzeug.utils import secure_filename
+import regex as re
 
-app = Flask("Find Weapons")
-app.secret_key = 'my_secret_key'
+import torch
 
-# Set the path for uploaded images
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+apple = "CPU is available"
 
-@app.route('/')
-def show_predict_stock_form():
-    return render_template('predictorform.html')
+# Check if CUDA is available
+if torch.cuda.is_available():
+    device = torch.device("cuda")
+    apple = "GPU is available"
+else:
+    device = torch.device("cpu")
+    
 
-@app.route('/results', methods=['POST'])
-def results():
-    if request.method == 'POST':
-        # Check if the post request has the file part
-        if 'file' not in request.files:
-            flash('No file part')
-            return redirect(request.url)
-        file = request.files['file']
 
-        # If user does not select file, browser also submit an empty part without filename
-        if file.filename == '':
-            flash('No selected file')
-            return redirect(request.url)
-        if file:
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+app = FastAPI()
 
-            # Prepare the command
-            cmd = f'python3 recognize-anything/inference_ram.py --image {os.path.join(app.config["UPLOAD_FOLDER"], filename)} --pretrained recognize-anything/pretrained/ram_swin_large_14m.pth'
+origins = [
+    "https://vercel-front-end-git-main-rahilkapa.vercel.app",
+]
 
-            # Call your model for inference
-            result = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-            # Get the output
-            predicted_object = result.stdout.decode()
 
-            return render_template('resultsform.html', predicted_object=predicted_object)
+UPLOADS_DIR = "uploads"
 
-if __name__ == "__main__":
-    port = int(os.environ.get('PORT', 5000))  # Use port 5000 if PORT not set
-    app.run(host='0.0.0.0', port=port, debug=True)
+
+@app.post("/results")
+async def results(file: UploadFile = File(...)):
+    # Extract the filename from the UploadFile object
+
+    filename = secure_filename(file.filename)
+
+    # Prepare the path to save the uploaded image
+    save_path = os.path.join(UPLOADS_DIR, filename)
+
+    # Save the uploaded image to the specified path
+    with open(save_path, "wb") as buffer:
+        buffer.write(await file.read())
+
+    # Prepare the command to call the inference script
+    cmd = f'python3 recognize-anything/inference_ram.py --image {save_path} --pretrained recognize-anything/pretrained/ram_swin_large_14m.pth'
+
+    # Call the model for inference
+    result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+    predicted_object = result.stdout.strip()
+
+    index = predicted_object.find("Image Tags:")
+    if index != -1:
+        predicted_object = predicted_object[index+len("Image Tags:"):].strip()
+        # Remove Mandarin characters using Unicode range
+        predicted_object = re.sub(r'[\u4e00-\u9fff|:/]+', '', predicted_object)
+
+
+    return {"predicted_object": predicted_object + apple}
+
