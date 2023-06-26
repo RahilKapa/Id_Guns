@@ -58,6 +58,7 @@ async def results(file: UploadFile = File(...)):
 
     index = predicted_object.find("Image Tags:")
     print(predicted_object)
+    print(:"hello")
     
     if index != -1:
         predicted_object = predicted_object[index+len("Image Tags:"):].strip()
