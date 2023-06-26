@@ -50,6 +50,7 @@ async def results(file: UploadFile = File(...)):
         buffer.write(await file.read())
 
     # Prepare the command to call the inference script
+    print(save_path)
     cmd = f'python3 recognize-anything/inference_ram.py --image {save_path} --pretrained recognize-anything/pretrained/ram_swin_large_14m.pth'
 
     # Call the model for inference
