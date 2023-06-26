@@ -57,10 +57,14 @@ async def results(file: UploadFile = File(...)):
     predicted_object = result.stdout.strip()
 
     index = predicted_object.find("Image Tags:")
+    print(predicted_object)
+    
     if index != -1:
         predicted_object = predicted_object[index+len("Image Tags:"):].strip()
         # Remove Mandarin characters using Unicode range
         predicted_object = re.sub(r'[\u4e00-\u9fff|:/]+', '', predicted_object)
+
+    
 
 
     return {"predicted_object": predicted_object + apple}

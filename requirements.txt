@@ -1,6 +1,6 @@
 fastapi
 uvicorn
-
+fastapi.middleware.cors
 werkzeug
 regex
 torch
