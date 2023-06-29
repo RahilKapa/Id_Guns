@@ -95,6 +95,9 @@ async def video_results(file: UploadFile = File(...)):
     predictions = []
 
     frame_count = 0
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    print(total_frames)
+
     while True:
         # Read frame from video
         ret, frame = cap.read()
@@ -103,7 +106,7 @@ async def video_results(file: UploadFile = File(...)):
         if not ret:
             break
 
-        if frame_count % 10 == 0:
+        if frame_count % 200 == 0:
             # Save frame as a temporary image to run the prediction model
             frame_path = f"{UPLOADS_DIR}/frame{frame_count}.jpg"
             cv2.imwrite(frame_path, frame)
